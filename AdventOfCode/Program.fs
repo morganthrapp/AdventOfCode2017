@@ -149,6 +149,25 @@ let sixthChallenge() =
     |> Seq.sortBy id
     |> Seq.find (fun v -> v > input)
 
+let seventhChallenge() =
+    let input = (readChallengeInput 7).Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) 
+    input
+    |> Seq.where (fun (p: string) -> 
+        let password = p.Split [|' '|]  
+        Seq.length (Seq.distinct password) = Seq.length password)
+    |> Seq.length
+
+let eighthChallenge() =
+    let input = (readChallengeInput 7).Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) 
+    input
+    |> Seq.where (fun (p: string) -> 
+        let password = p.Split [|' '|]  
+        let anagrams = password |> Seq.map (fun a -> Seq.sort [for c in a -> c] |> Seq.toList) |> Seq.toList
+        let distinct = Seq.distinct anagrams
+        Seq.length distinct = Seq.length password)
+
+    |> Seq.length
+
 [<EntryPoint>]
 let main argv = 
     let challenge = readInt()
@@ -159,6 +178,8 @@ let main argv =
                  | 4 -> fourthChallenge()
                  | 5 -> fifthChallenge()
                  | 6 -> sixthChallenge()
+                 | 7 -> seventhChallenge()
+                 | 8 -> eighthChallenge()
                  | _ -> raise (NotSupportedException())
     printfn "%A" result
     System.Console.ReadKey() |> ignore
