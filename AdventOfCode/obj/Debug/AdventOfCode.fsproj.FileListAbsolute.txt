@@ -15,6 +15,5 @@ C:\FSharpWorkspace\AdventOfCode\AdventOfCode\bin\Debug\AdventOfCode.pdb
 C:\FSharpWorkspace\AdventOfCode\AdventOfCode\bin\Debug\FSharp.Core.dll
 C:\FSharpWorkspace\AdventOfCode\AdventOfCode\bin\Debug\System.ValueTuple.dll
 C:\FSharpWorkspace\AdventOfCode\AdventOfCode\bin\Debug\FSharp.Core.xml
-C:\FSharpWorkspace\AdventOfCode\AdventOfCode\obj\Debug\AdventOfCode.fsproj.CoreCompileInputs.cache
 C:\FSharpWorkspace\AdventOfCode\AdventOfCode\obj\Debug\AdventOfCode.exe
 C:\FSharpWorkspace\AdventOfCode\AdventOfCode\obj\Debug\AdventOfCode.pdb

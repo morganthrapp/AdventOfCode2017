@@ -9,6 +9,8 @@ let readChallengeInput challengeNumber =
     let challenge = challengeNumber.ToString()
     if File.Exists(inputFiles +/ challenge) then File.ReadAllText(inputFiles +/ challenge) else stdin.ReadLine()
 
+let splitLines (lines: string )= lines.Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
+
 let (|EmptySeq|_|) a = if Seq.isEmpty a then Some() else None
 
 let firstEvenlyDivisable number (data: seq<int>) : option<float> = 
@@ -21,7 +23,7 @@ let firstEvenlyDivisable number (data: seq<int>) : option<float> =
                 |> Seq.tryFind (fun x -> Math.Ceiling x = x)
 
 let spreadsheet (s: string) = 
-    s.Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) 
+    splitLines s
     |> Seq.map (fun(d: string) -> d.Split([|' ';'\t'|], StringSplitOptions.RemoveEmptyEntries) |> Seq.map Int32.Parse)
 
 let spiralPosition input =
@@ -102,6 +104,21 @@ let spiralSum position =
     x <- adjustCoord x
     Seq.cast<int> spiral
 
+let firstSeenPosition input  =     
+    let mutable cycleCount = 0
+    let mutable seenConfigurations = [Array.copy input]
+    let mutable currentConfiguration = Array.copy input
+    while (seenConfigurations.Length - 1) = cycleCount  || cycleCount = 0 do
+        let blocks = Seq.max currentConfiguration
+        let maxIndex = Seq.findIndex (fun v -> v = blocks) currentConfiguration
+        currentConfiguration.[maxIndex] <- 0
+        Seq.init blocks (fun _ -> 1)
+        |> Seq.mapi (fun i _ -> (i + maxIndex + 1) % currentConfiguration.Length)
+        |> Seq.iter (fun v -> currentConfiguration.[v] <- currentConfiguration.[v] + 1)
+        if not (List.exists (fun e -> e = currentConfiguration) seenConfigurations) then
+            seenConfigurations <- List.append seenConfigurations [Array.copy currentConfiguration]
+        cycleCount <- cycleCount + 1
+    (cycleCount, seenConfigurations.[seenConfigurations.Length - 1])
 
 
 let firstChallenge() = 
@@ -150,7 +167,7 @@ let sixthChallenge() =
     |> Seq.find (fun v -> v > input)
 
 let seventhChallenge() =
-    let input = (readChallengeInput 7).Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) 
+    let input = splitLines (readChallengeInput 7)
     input
     |> Seq.where (fun (p: string) -> 
         let password = p.Split [|' '|]  
@@ -158,15 +175,66 @@ let seventhChallenge() =
     |> Seq.length
 
 let eighthChallenge() =
-    let input = (readChallengeInput 7).Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) 
+    let input = splitLines (readChallengeInput 7)
     input
     |> Seq.where (fun (p: string) -> 
         let password = p.Split [|' '|]  
         let anagrams = password |> Seq.map (fun a -> Seq.sort [for c in a -> c] |> Seq.toList) |> Seq.toList
         let distinct = Seq.distinct anagrams
         Seq.length distinct = Seq.length password)
-
     |> Seq.length
+
+let ninthChallenge() = 
+    let mutable input = 
+        readChallengeInput 9
+        |> splitLines
+        |> Seq.map Int32.Parse 
+        |> Seq.toArray
+    let exit = input.Length
+    let mutable pointer = 0
+    let mutable moves = 0
+    while pointer < exit do
+        let move = input.[pointer]
+        input.[pointer] <- move + 1
+        pointer <- pointer + move
+        moves <- moves + 1
+    moves
+
+let tenthChallenge() =
+    let mutable input = 
+        readChallengeInput 9
+        |> splitLines
+        |> Seq.map Int32.Parse 
+        |> Seq.toArray
+    let exit = input.Length
+    let mutable pointer = 0
+    let mutable moves = 0
+    while pointer < exit do
+        let move = input.[pointer]
+        input.[pointer] <- move + (if move > 2 then -1 else 1)
+        pointer <- pointer + move
+        moves <- moves + 1
+    moves
+
+let eleventhChallenge() = 
+    let input = 
+        readChallengeInput 11
+        |> (fun s -> s.Split [|' ';'\t'|])
+        |> Seq.map Int32.Parse
+        |> Seq.toArray
+    let count, _ = firstSeenPosition input
+    count
+
+let twelfthChallenge() = 
+    let input = 
+        readChallengeInput 11
+        |> (fun s -> s.Split [|' ';'\t'|])
+        |> Seq.map Int32.Parse
+        |> Seq.toArray
+    let _, finalConfiguration = firstSeenPosition input
+    let count, _ = firstSeenPosition finalConfiguration
+    count
+
 
 [<EntryPoint>]
 let main argv = 
@@ -180,6 +248,10 @@ let main argv =
                  | 6 -> sixthChallenge()
                  | 7 -> seventhChallenge()
                  | 8 -> eighthChallenge()
+                 | 9 -> ninthChallenge()
+                 | 10 -> tenthChallenge()
+                 | 11 -> eleventhChallenge()
+                 | 12 -> twelfthChallenge()
                  | _ -> raise (NotSupportedException())
     printfn "%A" result
     System.Console.ReadKey() |> ignore
