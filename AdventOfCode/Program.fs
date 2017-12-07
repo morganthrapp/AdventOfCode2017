@@ -1,5 +1,7 @@
 ﻿open System
 open System.IO
+open System.Text.RegularExpressions
+open Node
 
 let inputFiles = "C:\FSharpWorkspace\AdventOfCode\AdventOfCode\InputFiles"
 let read() = stdin.ReadLine()
@@ -121,6 +123,7 @@ let firstSeenPosition input  =
     (cycleCount, seenConfigurations.[seenConfigurations.Length - 1])
 
 
+
 let firstChallenge() = 
     let input = readChallengeInput 1
     let mutable previousChar = input.Chars(input.Length - 1)
@@ -235,23 +238,30 @@ let twelfthChallenge() =
     let count, _ = firstSeenPosition finalConfiguration
     count
 
+let thirteenthChallenge() = 
+    let input = Seq.map Node.fromLine (splitLines (readChallengeInput 13)) 
+    let node = Seq.head (input |> Seq.map (fun (n: Node) -> (Node.getOrCreate n.Name)))
+    match node.Top with
+        | Some(v) -> v.Name
+        | None -> raise (InvalidDataException())
 
 [<EntryPoint>]
 let main argv = 
     let challenge = readInt()
-    let result = match challenge with
-                 | 1 -> firstChallenge()
-                 | 2 -> secondChallenge()
-                 | 3 -> thirdChallenge()
-                 | 4 -> fourthChallenge()
-                 | 5 -> fifthChallenge()
-                 | 6 -> sixthChallenge()
-                 | 7 -> seventhChallenge()
-                 | 8 -> eighthChallenge()
-                 | 9 -> ninthChallenge()
-                 | 10 -> tenthChallenge()
-                 | 11 -> eleventhChallenge()
-                 | 12 -> twelfthChallenge()
+    let (result: obj) = match challenge with
+                 | 1 -> upcast firstChallenge()
+                 | 2 -> upcast secondChallenge()
+                 | 3 -> upcast thirdChallenge()
+                 | 4 -> upcast fourthChallenge()
+                 | 5 -> upcast fifthChallenge()
+                 | 6 -> upcast sixthChallenge()
+                 | 7 -> upcast seventhChallenge()
+                 | 8 -> upcast eighthChallenge()
+                 | 9 -> upcast ninthChallenge()
+                 | 10 -> upcast tenthChallenge()
+                 | 11 -> upcast eleventhChallenge()
+                 | 12 -> upcast twelfthChallenge()
+                 | 13 -> upcast thirteenthChallenge()
                  | _ -> raise (NotSupportedException())
     printfn "%A" result
     System.Console.ReadKey() |> ignore
