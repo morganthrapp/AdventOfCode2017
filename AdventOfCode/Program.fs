@@ -128,18 +128,17 @@ let thirteenthChallenge() =
 
 let fifteenthChallenge() =
     let input = splitLines (readChallengeInput 15)
-    let mutable registers = new Dictionary<string, int>()
-    Seq.iter (fun instruction -> registers <- (new Instruction(instruction)).Evaluate(registers)) input
-    Seq.max registers.Values    
+    let register = new Register()
+    Seq.iter (fun instruction -> (new Instruction(instruction)).Evaluate(register)) input
+    register.Max  
 
 let sixteenthChallenge() =
     let input = splitLines (readChallengeInput 15)
-    let mutable registers = new Dictionary<string, int>()
+    let register = new Register()
     let mutable highest = 0
     let evalWithHighest instruction =
-        let instruction = new Instruction(instruction)
-        let register = instruction.Evaluate(registers)
-        highest <- Seq.max [(Seq.max register.Values); highest]
+        (new Instruction(instruction)).Evaluate(register)
+        highest <- Seq.max [register.Max; highest]
     Seq.iter evalWithHighest input  
     highest
         

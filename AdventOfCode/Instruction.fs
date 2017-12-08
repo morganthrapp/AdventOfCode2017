@@ -6,6 +6,19 @@ open System.IO
 open System.Collections.Generic
 
 type OperatorEnum = Eq | Neq | Gt | Lt | Gte | Lte
+
+type Register() =
+    let registers = new Dictionary<string, int>()
+
+    member __.GetRegister name =
+        if not (registers.ContainsKey name)
+            then registers.Add(name, 0)
+        registers.[name]
+
+    member __.SetRegister name value =
+        registers.[name] <- value
+
+    member __.Max = Seq.max registers.Values
         
 type Operator(op: string) =
     let operator = 
@@ -26,10 +39,8 @@ type Condition(line: string) =
         | Regex @"(\w+)\s+(.*?)\s+(.+)" [ leftRegister; operator; rightValue ] -> (leftRegister, operator, rightValue)
         | _ -> raise(InvalidDataException(line))
 
-    member __.Evaluate(registers: Dictionary<string, int>) =
-        if not (registers.ContainsKey left)
-            then registers.Add(left, 0)
-        let leftVal = registers.[left]
+    member __.Evaluate(register: Register) =
+        let leftVal = register.GetRegister left
         let rightVal = Int32.Parse right
         let operator = Operator(op)
         let comp = 
@@ -43,22 +54,19 @@ type Condition(line: string) =
         comp leftVal rightVal
 
 type Instruction(line: string) =    
-    let (register, direction, amt, cond) =
+    let (left, direction, amt, cond) =
         match line with
-        | Regex @"(\w+)\s+(\w+)\s+(.*?)\s+if (.*)$" [ register; direction; amt; cond ] -> (register, direction, amt, cond)
+        | Regex @"(\w+)\s+(\w+)\s+(.*?)\s+if (.*)$" [ left; direction; amt; cond ] -> (left, direction, amt, cond)
         | _ -> raise(InvalidDataException(line))
     
-    member __.Evaluate(registers: Dictionary<string, int>) =
-        if not (registers.ContainsKey register)
-            then registers.Add(register, 0)
+    member __.Evaluate(register: Register) =
         let amount = Int32.Parse amt
-        let currentVal = registers.[register]
+        let currentVal = register.GetRegister left
         let condition = new Condition(cond)
-        match condition.Evaluate(registers) with
+        match condition.Evaluate(register) with
         | true -> match direction with
-                  | "inc" -> registers.[register] <- currentVal + amount
-                  | "dec" -> registers.[register] <- currentVal - amount
+                  | "inc" -> register.SetRegister left (currentVal + amount)
+                  | "dec" -> register.SetRegister left (currentVal - amount)
                   | _ -> raise(InvalidDataException(direction))
         | false -> ()
-        registers
 
