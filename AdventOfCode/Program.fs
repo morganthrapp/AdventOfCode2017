@@ -2,6 +2,8 @@
 open System.IO
 open Node
 open Utilities
+open Instruction
+open System.Collections.Generic
 
 let firstChallenge() = 
     let input = readChallengeInput 1
@@ -124,6 +126,24 @@ let thirteenthChallenge() =
         | Some(v) -> v.Name
         | None -> raise (InvalidDataException())
 
+let fifteenthChallenge() =
+    let input = splitLines (readChallengeInput 15)
+    let mutable registers = new Dictionary<string, int>()
+    Seq.iter (fun instruction -> registers <- (new Instruction(instruction)).Evaluate(registers)) input
+    Seq.max registers.Values    
+
+let sixteenthChallenge() =
+    let input = splitLines (readChallengeInput 15)
+    let mutable registers = new Dictionary<string, int>()
+    let mutable highest = 0
+    let evalWithHighest instruction =
+        let instruction = new Instruction(instruction)
+        let register = instruction.Evaluate(registers)
+        highest <- Seq.max [(Seq.max register.Values); highest]
+    Seq.iter evalWithHighest input  
+    highest
+        
+
 [<EntryPoint>]
 let main argv = 
     let challenge = readInt()
@@ -141,6 +161,8 @@ let main argv =
                  | 11 -> upcast eleventhChallenge()
                  | 12 -> upcast twelfthChallenge()
                  | 13 -> upcast thirteenthChallenge()
+                 | 15 -> upcast fifteenthChallenge()
+                 | 16 -> upcast sixteenthChallenge()
                  | _ -> raise (NotSupportedException())
     printfn "%A" result
     System.Console.ReadKey() |> ignore

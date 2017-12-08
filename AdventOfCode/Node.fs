@@ -1,16 +1,10 @@
 ﻿module Node
 
 open System.Collections.Generic
-open System.Text.RegularExpressions
 open System
+open Utilities
 
-type Node private(name: string) =
-    static let (|Regex|_|) pattern input = 
-        let m = Regex.Match (input, pattern)
-        match m.Success with
-        | true -> Some(List.tail [for g in m.Groups -> g.Value])
-        | false -> None
-    
+type Node private(name: string) =    
     static let rec topNode (node: Node) : option<Node> =
         match node.Parent with
         | None -> Some(node)

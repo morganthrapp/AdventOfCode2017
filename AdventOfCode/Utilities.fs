@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 
 
 
@@ -124,3 +125,9 @@ let firstSeenPosition input  =
             seenConfigurations <- List.append seenConfigurations [Array.copy currentConfiguration]
         cycleCount <- cycleCount + 1
     (cycleCount, seenConfigurations.[seenConfigurations.Length - 1])
+
+let (|Regex|_|) pattern input = 
+    let m = Regex.Match (input, pattern)
+    match m.Success with
+    | true -> Some(List.tail [for g in m.Groups -> g.Value])
+    | false -> None
