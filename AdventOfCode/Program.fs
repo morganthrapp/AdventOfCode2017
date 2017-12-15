@@ -4,6 +4,7 @@ open Node
 open Utilities
 open Instruction
 open System.Collections.Generic
+open Patterns
 
 let firstChallenge() = 
     let input = readChallengeInput 1
@@ -141,6 +142,15 @@ let sixteenthChallenge() =
         highest <- Seq.max [register.Max; highest]
     Seq.iter evalWithHighest input  
     highest
+
+let seventeenthChallenge() = 
+    let input = readChallengeInput 17
+    (new Tokenizer(input)).Score
+
+let eighteenthChallenge() =
+    let input = readChallengeInput 17
+    (new Tokenizer(input)).GarbageCount
+
         
 
 [<EntryPoint>]
@@ -162,6 +172,8 @@ let main argv =
                  | 13 -> upcast thirteenthChallenge()
                  | 15 -> upcast fifteenthChallenge()
                  | 16 -> upcast sixteenthChallenge()
+                 | 17 -> upcast seventeenthChallenge()
+                 | 18 -> upcast eighteenthChallenge()
                  | _ -> raise (NotSupportedException())
     printfn "%A" result
     System.Console.ReadKey() |> ignore

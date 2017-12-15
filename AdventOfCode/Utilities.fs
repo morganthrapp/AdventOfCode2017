@@ -60,10 +60,8 @@ let spiralSum position =
     let mutable spiral = Array2D.create position position 0
 
     let generateInitialCoord() = match position with | 2 -> 0 | _ -> position / 2
-    let mutable y = generateInitialCoord()
-    let mutable x = generateInitialCoord()
-    let mutable dy = 0
-    let mutable dx = -1
+    let y = generateInitialCoord()
+    let x = generateInitialCoord()
     spiral.[y, x] <- 1
     let neighbors = [|
         [|1; 1|]
@@ -77,37 +75,31 @@ let spiralSum position =
     |]
     let isValidCoord c = 0 <= c && c < position
     let isValidCoordPair y x = isValidCoord y && isValidCoord x
-    let mutable counter = 0;
-    while isValidCoordPair x y && counter <= (position * position) do
-        let r = neighbors 
-                |> Seq.where (fun n -> isValidCoordPair (y + n.[0]) (x + n.[1]))
-                |> Seq.map (fun n -> spiral.[y + n.[0], x + n.[1]]) 
-                |> Seq.sum
-        spiral.[y, x] <- match r with | 0 -> 1 | _ -> r 
-        let turnLeft = 
-            match (dy, dx) with
-            | (1, 0) -> (0, 1)
-            | (0, 1) -> (-1, 0)
-            | (-1, 0) -> (0, -1)
-            | (0, -1) -> (1, 0)
-            | _ -> raise(ArgumentOutOfRangeException())
-        let (newDy, newDx) = turnLeft
-        let newY = y + newDy
-        let newX = x + newDx
-        if isValidCoordPair newY newX && spiral.[newY, newX] = 0
-            then
-                y <- newY
-                x <- newX
-                dy <- newDy
-                dx <- newDx
-            else
-                y <- y + dy
-                x <- x + dx
-        counter <- counter + 1
-    let adjustCoord c = if isValidCoord c then c else if c >= position then c - 1 else c + 1
-    y <- adjustCoord y
-    x <- adjustCoord x
-    Seq.cast<int> spiral
+    let rec nextSpiral y x dy dx (spiral: int[,]) counter =
+        if not (isValidCoordPair x y) || not (counter <= (position * position))
+            then spiral
+        else
+            let r = neighbors 
+                    |> Seq.where (fun n -> isValidCoordPair (y + n.[0]) (x + n.[1]))
+                    |> Seq.map (fun n -> spiral.[y + n.[0], x + n.[1]]) 
+                    |> Seq.sum
+            spiral.[y, x] <- match r with | 0 -> 1 | _ -> r 
+            let turnLeft = 
+                match (dy, dx) with
+                | (1, 0) -> (0, 1)
+                | (0, 1) -> (-1, 0)
+                | (-1, 0) -> (0, -1)
+                | (0, -1) -> (1, 0)
+                | _ -> raise(ArgumentOutOfRangeException())
+            let (newDy, newDx) = turnLeft
+            let newY = y + newDy
+            let newX = x + newDx
+            if isValidCoordPair newY newX && spiral.[newY, newX] = 0
+                then
+                    nextSpiral newY newX newDy newDx spiral (counter + 1)
+                else
+                    nextSpiral (y + dy) (x + dx) dy dx spiral (counter + 1)
+    Seq.cast<int> (nextSpiral y x 0 -1 spiral 0)
 
 
 let firstSeenPosition input  =     
