@@ -17,6 +17,8 @@ let readChallengeInput challengeNumber =
 let splitLines (lines: string )= lines.Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
 
 let (|EmptySeq|_|) a = if Seq.isEmpty a then Some() else None
+            
+type Direction = | Up | Left | Down | Right
 
 let firstEvenlyDivisable number (data: seq<int>) : option<float> = 
     let n = float number
@@ -31,33 +33,24 @@ let spreadsheet (s: string) =
     splitLines s
     |> Seq.map (fun(d: string) -> d.Split([|' ';'\t'|], StringSplitOptions.RemoveEmptyEntries) |> Seq.map Int32.Parse)
 
-let spiralPosition input =
-    let mutable n = input - 1
-    match n with
-        | 0 -> [0; 0]
+let spiralPosition input : int * int =
+    match (input - 1) with
+        | 0 -> (0, 0)
         | _ ->
-            n <- n - 1
-            let r = int (floor ((sqrt (float n + float 1)) - float 1) / float 2) + 1
+            let r = int (floor ((sqrt (float (input - 1) + float 1)) - float 1) / float 2) + 1
             let p = 8 * r * (r - 1) / 2
             let en = r * 2
-            let a = (1 + n - p) % (r * 8)
-            let mutable left = 0
-            let mutable right = 0
+            let a = (1 + (input - 1) - p) % (r * 8)
             match int (floor (float (a / (r * 2)))) with
-                | 0 -> left <- a - r; right <- -r
-                | 1 -> left <- r; right <- (a % en) - r
-                | 2 -> left <- r - (a % en); right <- r
-                | 3 -> left <- -r; right <- r - (a % en)
+                | 0 -> (a - r, -r)
+                | 1 -> (r, (a % en) - r)
+                | 2 -> (r - (a % en), r)
+                | 3 -> (-r, r - (a % en))
                 | _ -> raise (IndexOutOfRangeException())
-            [left; right]
-            
-let spiralSum position =
-    match position with
-    | 0 -> Seq.cast<int> [|0|]
-    | 1 -> Seq.cast<int> [|1|]
-    | _ ->
 
-    let mutable spiral = Array2D.create position position 0
+
+let generateSpiralSum position = 
+    let spiral = Array2D.create position position 0
 
     let generateInitialCoord() = match position with | 2 -> 0 | _ -> position / 2
     let y = generateInitialCoord()
@@ -75,31 +68,44 @@ let spiralSum position =
     |]
     let isValidCoord c = 0 <= c && c < position
     let isValidCoordPair y x = isValidCoord y && isValidCoord x
-    let rec nextSpiral y x dy dx (spiral: int[,]) counter =
-        if not (isValidCoordPair x y) || not (counter <= (position * position))
-            then spiral
-        else
+    let leftTurn = function | Up -> Left | Left -> Down | Down -> Right | Right -> Up
+    let dirOffset direction = 
+        match direction with
+        | Up -> (-1, 0)
+        | Left -> (0, -1)
+        | Down -> (1, 0)
+        | Right -> (0, 1)
+
+    let rec nextSpiral y x direction counter =
+        if isValidCoordPair x y && counter <= (position * position)
+        then
             let r = neighbors 
                     |> Seq.where (fun n -> isValidCoordPair (y + n.[0]) (x + n.[1]))
-                    |> Seq.map (fun n -> spiral.[y + n.[0], x + n.[1]]) 
-                    |> Seq.sum
+                    |> Seq.sumBy (fun n -> spiral.[y + n.[0], x + n.[1]]) 
+
             spiral.[y, x] <- match r with | 0 -> 1 | _ -> r 
-            let turnLeft = 
-                match (dy, dx) with
-                | (1, 0) -> (0, 1)
-                | (0, 1) -> (-1, 0)
-                | (-1, 0) -> (0, -1)
-                | (0, -1) -> (1, 0)
-                | _ -> raise(ArgumentOutOfRangeException())
-            let (newDy, newDx) = turnLeft
+            let turnLeft = direction |> leftTurn
+            let (newDy, newDx) = turnLeft |> dirOffset
             let newY = y + newDy
             let newX = x + newDx
-            if isValidCoordPair newY newX && spiral.[newY, newX] = 0
-                then
-                    nextSpiral newY newX newDy newDx spiral (counter + 1)
-                else
-                    nextSpiral (y + dy) (x + dx) dy dx spiral (counter + 1)
-    Seq.cast<int> (nextSpiral y x 0 -1 spiral 0)
+            let shouldTurn = isValidCoordPair newY newX && spiral.[newY, newX] = 0
+            let nextCount = counter + 1
+            if shouldTurn
+            then
+                nextSpiral newY newX turnLeft nextCount
+            else
+                let (dy, dx) = direction |> dirOffset
+                nextSpiral (y + dy) (x + dx) direction nextCount
+        else
+            spiral
+
+    nextSpiral y x Right 0
+
+let spiralSum position =
+    match position with
+    | 0 -> Seq.cast<int> [|0|]
+    | 1 -> Seq.cast<int> [|1|]
+    | _ -> generateSpiralSum position   
 
 
 let firstSeenPosition input  =     

@@ -3,7 +3,6 @@ open System.IO
 open Node
 open Utilities
 open Instruction
-open System.Collections.Generic
 open Patterns
 
 let firstChallenge() = 
@@ -40,16 +39,15 @@ let fourthChallenge() =
 
 let fifthChallenge() =
     let input = Int32.Parse (readChallengeInput 5)
-    let position = spiralPosition input
-    abs position.[0] + abs position.[1]
+    let (y, x) = spiralPosition input
+    abs y + abs x
 
 let sixthChallenge() =
     let input = Int32.Parse (readChallengeInput 5)
     Seq.init 10 id 
-    |> Seq.map (fun i -> spiralSum i) 
-    |> Seq.collect id 
-    |> Seq.sortBy id
-    |> Seq.find (fun v -> v > input)
+    |> Seq.collect spiralSum
+    |> Seq.sort 
+    |> Seq.find ((<) input)
 
 let seventhChallenge() =
     let input = splitLines (readChallengeInput 7)
